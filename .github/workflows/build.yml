@@ -26,12 +26,10 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Show environment
+      - name: Use fixed debug keystore
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          node -v
-          java -version
+          mkdir -p ~/.android
+          cp debug.keystore ~/.android/debug.keystore
 
       - name: Install npm dependencies
         run: npm install --no-audit --no-fund
@@ -41,6 +39,16 @@ jobs:
 
       - name: Sync web assets
         run: npx cap sync android
+
+      - name: Generate app icons
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 make_icons.py
+
+      - name: Set app label
+        run: |
+          sed -i 's|<string name="app_name">.*</string>|<string name="app_name">蕊之管家</string>|' android/app/src/main/res/values/strings.xml
+          grep app_name android/app/src/main/res/values/strings.xml
 
       - name: Build debug APK
         run: |
