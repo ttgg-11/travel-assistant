@@ -1,0 +1,14 @@
+{
+  "name": "travel-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "出行助手 · 天气建议 + 备忘提醒 + 风扇控制",
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/local-notifications": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.0.0"
+  }
+}

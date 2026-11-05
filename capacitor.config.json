@@ -1,0 +1,12 @@
+{
+  "appId": "com.tianhe.travelassistant",
+  "appName": "出行助手",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#F2F4F7"
+  }
+}
