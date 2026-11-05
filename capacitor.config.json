@@ -1,6 +1,6 @@
 {
   "appId": "com.tianhe.travelassistant",
-  "appName": "出行助手",
+  "appName": "蕊之管家",
   "webDir": "www",
   "server": {
     "androidScheme": "https"
