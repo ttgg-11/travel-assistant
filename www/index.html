@@ -3,413 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#4E8FE8">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<title>出行助手</title>
+<meta name="theme-color" content="#2E9E6B">
+<title>蕊之管家</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F2F4F7;
- font-family:-apple-system,"HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#0E1621}
-#view{position:absolute;inset:0 0 calc(64px + env(safe-area-inset-bottom)) 0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-#view::-webkit-scrollbar{display:none}
-.pane{padding-bottom:24px;animation:fade .22s ease}
-@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-
-/* weather */
-.sky{background:linear-gradient(165deg,#4E8FE8,#7FB8F2 50%,#CFE6FF);padding:calc(14px + env(safe-area-inset-top)) 20px 24px;color:#fff;border-radius:0 0 30px 30px;position:relative;overflow:hidden}
-.sky::after{content:"";position:absolute;inset:0;background:radial-gradient(300px 150px at 84% 6%,rgba(255,255,255,.45),transparent 70%);pointer-events:none}
-.cityrow{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
-.city{font-size:19px;font-weight:600}
-.city small{display:block;font-size:11.5px;font-weight:400;opacity:.85;margin-top:3px}
-.now{display:flex;gap:6px;margin-top:14px;position:relative;z-index:2;align-items:flex-start}
-.deg{font-size:76px;font-weight:250;letter-spacing:-4px;line-height:.92;font-variant-numeric:tabular-nums}
-.deg sup{font-size:28px;vertical-align:super}
-.cond{margin-top:8px;font-size:13.5px;line-height:1.6;opacity:.96}
-.chips{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap;position:relative;z-index:2}
-.chip{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.3);padding:5px 11px;border-radius:20px;font-size:11.5px}
-
-.hourly{display:flex;margin:14px 14px 0;background:#fff;border-radius:18px;padding:12px 4px;box-shadow:0 6px 18px -12px rgba(20,40,80,.4);overflow-x:auto;scrollbar-width:none}
-.hourly::-webkit-scrollbar{display:none}
-.h{min-width:56px;text-align:center;font-size:11px}
-.h .t{color:#6B7785}.h .i{font-size:17px;margin:5px 0 3px}.h .d{font-weight:600;font-size:12.5px}
-.h .r{color:#3C82D6;font-size:10px;margin-top:2px;font-weight:600}
-.h.nowh{background:#EEF5FF;border-radius:12px}
-
-.sec{margin:18px 14px 0}
-.sec-t{font-size:11.5px;font-weight:700;color:#8794A5;letter-spacing:1.2px;margin:0 0 9px 4px}
-.adv{background:#fff;border-radius:16px;padding:13px 14px;display:flex;gap:12px;margin-bottom:8px;box-shadow:0 5px 16px -14px rgba(20,40,80,.6)}
-.adv .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex:none}
-.adv .h1{font-size:14px;font-weight:650;margin-bottom:3px}
-.adv .p{font-size:12px;color:#6B7785;line-height:1.55}
-.c1{background:#E8F1FF}.c2{background:#FFF0E4}.c3{background:#EAFAF1}.c4{background:#F3ECFF}
-
-/* memo */
-.top{padding:calc(16px + env(safe-area-inset-top)) 18px 0;display:flex;justify-content:space-between;align-items:flex-start}
-.top h1{font-size:26px;font-weight:700;margin:0;letter-spacing:-.4px}
-.top .sub{font-size:12px;color:#8794A5;margin-top:5px}
-.add{width:36px;height:36px;border-radius:50%;background:#2F6BFF;color:#fff;border:0;font-size:22px;line-height:1;display:grid;place-items:center;box-shadow:0 8px 16px -8px rgba(47,107,255,.9)}
-.empty{text-align:center;color:#A6B0BE;font-size:13px;padding:60px 30px;line-height:1.8}
-.day{font-size:11.5px;font-weight:700;color:#8794A5;letter-spacing:1px;margin:16px 18px 8px}
-.memo{background:#fff;border-radius:15px;padding:12px 14px;display:flex;gap:11px;margin:0 14px 8px;align-items:flex-start;box-shadow:0 5px 16px -14px rgba(20,40,80,.6)}
-.memo .cb{width:19px;height:19px;border-radius:50%;border:2px solid #C9D3E0;flex:none;margin-top:2px;display:grid;place-items:center;font-size:11px;color:#fff}
-.memo.done .cb{background:#34C759;border-color:#34C759}
-.memo .b{flex:1;min-width:0}
-.memo .t1{font-size:14.5px;font-weight:600;margin-bottom:4px;word-break:break-word}
-.memo.done .t1{text-decoration:line-through;color:#A6B0BE}
-.memo .t2{font-size:11.5px;color:#7C8AA0;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.tag{background:#EEF2F7;border-radius:6px;padding:2px 7px;font-size:11px;color:#5A6879;font-weight:600}
-.tag.loc{background:#E8F1FF;color:#2F6BFF}
-.tag.clk{background:#FFF0E4;color:#C4700F}
-.tag.hot{background:#FFE8E8;color:#D93025}
-.del{border:0;background:none;color:#C9D3E0;font-size:17px;padding:0 2px;flex:none}
-
-/* fan */
-.fanwrap{margin:14px 14px 0;background:linear-gradient(170deg,#1E2A3A,#111925);border-radius:24px;padding:20px;color:#fff;text-align:center;position:relative;overflow:hidden}
-.fanwrap::after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(96,165,250,.24),transparent 68%);top:-70px;left:50%;transform:translateX(-50%)}
-.pwr{width:98px;height:98px;border-radius:50%;margin:6px auto 10px;display:grid;place-items:center;font-size:32px;border:0;position:relative;z-index:2;color:#fff;
- background:radial-gradient(circle at 35% 30%,#5EA0FF,#2F6BFF 60%,#1D4FD8);box-shadow:0 0 0 9px rgba(94,160,255,.13),0 16px 36px -12px rgba(47,107,255,.85)}
-.pwr.off{background:radial-gradient(circle at 35% 30%,#3A4757,#242E3B 60%,#1A222C);box-shadow:0 0 0 9px rgba(255,255,255,.04)}
-.st{font-size:12.5px;opacity:.85;position:relative;z-index:2}
-.kpi{display:flex;justify-content:space-around;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);position:relative;z-index:2}
-.kpi div{font-size:10.5px;opacity:.55}.kpi b{display:block;font-size:15px;opacity:1;margin-top:3px;font-weight:600}
-.box{margin:11px 14px 0;background:#fff;border-radius:16px;padding:14px}
-.box .lb{font-size:11.5px;color:#8794A5;font-weight:700;letter-spacing:.6px;margin-bottom:10px}
-.ticks{display:flex;gap:4px}
-.ticks i{flex:1;height:32px;border-radius:7px;background:#EDF1F6;font-style:normal;display:grid;place-items:center;font-size:12px;color:#7C8AA0;font-weight:600}
-.ticks i.on{background:#2F6BFF;color:#fff}
-.row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F4F8;font-size:13.5px}
-.row:last-child{border:0}
-.sw{width:44px;height:26px;border-radius:20px;background:#E2E8F0;position:relative;transition:.2s;flex:none}
-.sw::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.2)}
-.sw.on{background:#2F6BFF}.sw.on::after{left:21px}
-.note{font-size:11px;color:#A6B0BE;text-align:center;margin:14px 20px;line-height:1.6}
-
-/* tabbar */
-.tabbar{position:absolute;bottom:0;left:0;right:0;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(255,255,255,.96);border-top:1px solid #E6EBF2;display:flex;backdrop-filter:blur(16px);z-index:20}
-.tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#9AA6B6;font-size:10px;font-family:inherit;padding:0}
-.tab .e{font-size:20px;filter:grayscale(1) opacity(.5);transition:.15s}
-.tab.on{color:#2F6BFF;font-weight:650}.tab.on .e{filter:none}
-
-/* sheet */
-.mask{position:absolute;inset:0;background:rgba(10,18,28,.45);opacity:0;pointer-events:none;transition:.2s;z-index:50}
-.mask.on{opacity:1;pointer-events:auto}
-.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));transform:translateY(110%);transition:.25s cubic-bezier(.3,.9,.3,1);z-index:51}
-.sheet.on{transform:none}
-.sheet h3{margin:0 0 16px;font-size:17px}
-.field{margin-bottom:13px}
-.field label{display:block;font-size:11.5px;color:#8794A5;font-weight:600;margin-bottom:6px;letter-spacing:.4px}
-.field input,.field select{width:100%;border:1px solid #E2E8F0;background:#F7F9FC;border-radius:11px;padding:12px 13px;font-size:15px;font-family:inherit;color:#0E1621;outline:none}
-.field input:focus{border-color:#2F6BFF;background:#fff}
-.btn{width:100%;border:0;background:#2F6BFF;color:#fff;border-radius:13px;padding:14px;font-size:15.5px;font-weight:650;font-family:inherit;margin-top:6px}
-.btn.ghost{background:#F2F4F7;color:#5A6879;margin-top:9px}
-.banner{position:absolute;top:calc(12px + env(safe-area-inset-top));left:14px;right:14px;background:#0E1621;color:#fff;border-radius:14px;padding:13px 15px;font-size:13px;z-index:99;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);display:none;line-height:1.5}
-.banner.on{display:block;animation:fade .25s}
-
-#app{position:absolute;inset:0;overflow:hidden;background:#F2F4F7}
-@media (min-width:560px){
-  body{background:radial-gradient(1100px 560px at 50% 0%,#223043 0%,#141B25 55%,#0C1117 100%);
-       display:flex;align-items:center;justify-content:center;padding:28px}
-  #app{position:relative;inset:auto;width:393px;height:852px;border-radius:46px;flex:none;
-       box-shadow:0 0 0 11px #1B222C,0 0 0 12px #39424F,0 40px 90px -20px rgba(0,0,0,.85)}
-  body::after{content:"出行助手 · 手机版预览（手机上打开同一地址即可安装到桌面）";position:fixed;bottom:14px;left:0;right:0;
-       text-align:center;color:#61708A;font-size:12px;letter-spacing:.3px}
-}
+  html,body{margin:0;height:100%;background:#F2F4F7;overflow:hidden;
+    font-family:-apple-system,"HarmonyOS Sans SC","PingFang SC",system-ui,sans-serif}
+  #boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    background:linear-gradient(165deg,#2E9E6B,#9BE3B9)}
+  #boot .t{color:#fff;font-size:22px;font-weight:600;letter-spacing:2px}
+  #boot .s{color:rgba(255,255,255,.85);font-size:12px;letter-spacing:1px}
+  #boot .dot{width:34px;height:34px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;
+    animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div id="app">
-<div id="view"></div>
-<nav class="tabbar">
-  <button class="tab on" data-t="weather"><span class="e">🌤</span>天气</button>
-  <button class="tab" data-t="memo"><span class="e">📝</span>备忘</button>
-  <button class="tab" data-t="fan"><span class="e">🌀</span>风扇</button>
-</nav>
-
-<div class="mask" id="mask"></div>
-<div class="sheet" id="sheet">
-  <h3>新建备忘</h3>
-  <div class="field"><label>做什么</label><input id="f-title" placeholder="例：交季度报告" autocomplete="off"></div>
-  <div class="field"><label>提醒时间（可选）</label><input id="f-time" type="datetime-local"></div>
-  <div class="field"><label>到地方提醒（可选，先填地名）</label><input id="f-loc" placeholder="例：小区门口" autocomplete="off"></div>
-  <button class="btn" id="f-save">保存</button>
-  <button class="btn ghost" id="f-cancel">取消</button>
-</div>
-
-<div class="banner" id="banner"></div>
-</div>
-
+<div id="boot"><div class="dot"></div><div class="t">蕊之管家</div><div class="s">正在启动</div></div>
 <script>
-var CITY = { name:"广州", dist:"天河区", lat:23.1355, lon:113.3614 };
-var ICON = {0:"☀️",1:"🌤",2:"⛅",3:"☁️",45:"🌫",48:"🌫",51:"🌦",53:"🌦",55:"🌦",56:"🌧",57:"🌧",61:"🌦",63:"🌧",65:"🌧",66:"🌧",67:"🌧",71:"🌨",73:"🌨",75:"🌨",77:"🌨",80:"🌦",81:"🌧",82:"🌧",85:"🌨",86:"🌨",95:"⛈",96:"⛈",99:"⛈"};
-var TEXT = {0:"晴",1:"晴间多云",2:"多云",3:"阴",45:"雾",48:"雾凇",51:"毛毛雨",53:"毛毛雨",55:"毛毛雨",56:"冻雨",57:"冻雨",61:"小雨",63:"中雨",65:"大雨",66:"冻雨",67:"冻雨",71:"小雪",73:"中雪",75:"大雪",77:"雪粒",80:"阵雨",81:"阵雨",82:"强阵雨",85:"阵雪",86:"强阵雪",95:"雷阵雨",96:"雷阵雨伴冰雹",99:"强雷阵雨"};
-var DIRS = ["北","东北","东","东南","南","西南","西","西北"];
+(function () {
+  var APP_URL   = "https://raw.githubusercontent.com/tgg-11/travel-assistant/main/www/app.html";
+  var CACHE_KEY = "rzgj_cache_v1";
+  var CHECK_KEY = "rzgj_last_check";
+  var CHECK_GAP = 6 * 3600 * 1000;
 
-var S = {
-  tab: "weather",
-  wx: null,
-  wxErr: false,
-  memos: [],
-  fan: { on: true, speed: 3, osc: true, nat: true, sleep: false, light: false, timer: 0 }
-};
-
-function load() {
-  try { var m = localStorage.getItem("memos_v1"); if (m) S.memos = JSON.parse(m); } catch (e) {}
-  try { var c = localStorage.getItem("wx_v1"); if (c) { var o = JSON.parse(c); if (Date.now() - o.at < 36e5) S.wx = o.data; } } catch (e) {}
-  try { var f = localStorage.getItem("fan_v1"); if (f) S.fan = JSON.parse(f); } catch (e) {}
-}
-function saveMemos() { try { localStorage.setItem("memos_v1", JSON.stringify(S.memos)); } catch (e) {} }
-function saveFan() { try { localStorage.setItem("fan_v1", JSON.stringify(S.fan)); } catch (e) {} }
-
-function iconOf(c) { return ICON[c] || "🌡"; }
-function textOf(c) { return TEXT[c] || "未知"; }
-function levelOf(k) { var t = [1,5,11,19,28,38,49], l = 0; for (var i=0;i<t.length;i++) if (k >= t[i]) l++; return l; }
-function dirOf(d) { return DIRS[Math.round(((d % 360) / 45)) % 8]; }
-function pad(n) { return n < 10 ? "0" + n : "" + n; }
-
-function fetchWeather(cb) {
-  var u = "https://api.open-meteo.com/v1/forecast?latitude=" + CITY.lat + "&longitude=" + CITY.lon +
-    "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
-    "&hourly=temperature_2m,precipitation_probability,weather_code" +
-    "&daily=temperature_2m_max,temperature_2m_min,uv_index_max" +
-    "&timezone=Asia%2FShanghai&forecast_days=2";
-  fetch(u).then(function (r) { return r.json(); }).then(function (j) {
-    S.wx = j; S.wxErr = false;
-    try { localStorage.setItem("wx_v1", JSON.stringify({ at: Date.now(), data: j })); } catch (e) {}
-    cb(true);
-  }).catch(function () { S.wxErr = true; cb(false); });
-}
-
-function adviceOf(wx) {
-  var cur = wx.current, hr = wx.hourly, dy = wx.daily;
-  var i0 = 0;
-  var key = cur.time.slice(0, 13) + ":00";
-  var idx = hr.time.indexOf(key); if (idx >= 0) i0 = idx;
-  var pop = 0;
-  for (var k = 0; k < 6; k++) { var v = hr.precipitation_probability[i0 + k]; if (v > pop) pop = v; }
-  var tmax1 = dy.temperature_2m_max[1], tmin1 = dy.temperature_2m_min[1], uv1 = dy.uv_index_max[1];
-  var dF = cur.apparent_temperature - cur.temperature_2m;
-  var out = [];
-  if (pop >= 50) out.push({s:100, ic:"🌂", c:"c1", t:"要带伞", b:"未来 6 小时降水概率最高 " + pop + "%"});
-  if (dF >= 3) out.push({s:90, ic:"🥵", c:"c2", t:"体感偏闷热", b:"气温 " + Math.round(cur.temperature_2m) + "°，体感 " + Math.round(cur.apparent_temperature) + "°，湿度 " + cur.relative_humidity_2m + "%"});
-  if (levelOf(cur.wind_speed_10m) >= 5) out.push({s:78, ic:"🌬", c:"c4", t:"风有点大", b:dirOf(cur.wind_direction_10m) + "风 " + levelOf(cur.wind_speed_10m) + " 级，骑车注意"});
-  if (uv1 >= 6) out.push({s:74, ic:"🕶", c:"c2", t:"防晒别省", b:"明天紫外线指数 " + Math.round(uv1) + "，中午少晒"});
-  if (tmax1 >= 30) out.push({s:72, ic:"☀️", c:"c3", t:"明天偏热", b:"明天 " + Math.round(tmin1) + "–" + Math.round(tmax1) + "°，带瓶水"});
-  if (cur.relative_humidity_2m >= 85) out.push({s:62, ic:"💧", c:"c1", t:"湿度很高", b:"湿度 " + cur.relative_humidity_2m + "%，衣服不容易干"});
-  if ((tmax1 - tmin1) >= 8) out.push({s:66, ic:"🧥", c:"c4", t:"明天早晚凉", b:"温差 " + Math.round(tmax1 - tmin1) + "°，早晚加件外套"});
-  if (pop < 30) out.push({s:52, ic: cur.is_day ? "🚶" : "🌙", c:"c3", t: cur.is_day ? "适合出门" : "今晚基本不下雨", b:"未来 6 小时降水概率最高只有 " + pop + "%"});
-  if (!out.length) out.push({s:10, ic:"🌤", c:"c3", t:"天气平稳", b:"正常出行即可"});
-  out.sort(function (a, b) { return b.s - a.s; });
-  return { list: out.slice(0, 4), pop: pop, i0: i0, tmax1: tmax1, tmin1: tmin1, uv1: uv1 };
-}
-
-function renderWeather() {
-  if (!S.wx) {
-    return "<div class='pane'><div class='sky'><div class='cityrow'><div class='city'>" + CITY.name + "<small>" + CITY.dist + "</small></div></div>" +
-      "<div class='now'><div class='deg'>--<sup>°</sup></div><div class='cond'>" + (S.wxErr ? "天气获取失败<br>检查网络后重试" : "正在获取天气…") + "</div></div></div>" +
-      "<div class='sec'><button class='btn' onclick='reload()'>重新获取</button></div></div>";
+  function hash(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
+    return h.toString(36);
   }
-  var w = S.wx, cur = w.current, hr = w.hourly;
-  var A = adviceOf(w);
-  var now = new Date(cur.time + ":00");
-  var hh = pad(now.getHours()), mm = pad(now.getMinutes());
-
-  var hours = "";
-  for (var k = 0; k < 8; k++) {
-    var i = A.i0 + k;
-    if (i >= hr.time.length) break;
-    var H = Number(hr.time[i].slice(11, 13));
-    hours += "<div class='h" + (k === 0 ? " nowh" : "") + "'><div class='t'>" + (k === 0 ? "现在" : H + "时") + "</div>" +
-      "<div class='i'>" + iconOf(hr.weather_code[i]) + "</div><div class='d'>" + Math.round(hr.temperature_2m[i]) + "°</div>" +
-      "<div class='r'>" + (hr.precipitation_probability[i] || 0) + "%</div></div>";
+  function readCache() {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch (e) { return null; }
+  }
+  function writeCache(h, html) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ h: h, html: html })); } catch (e) {}
+  }
+  function render(html) {
+    document.open(); document.write(html); document.close();
+  }
+  function timeoutFetch(url, ms) {
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      var t = setTimeout(function () { if (!done) { done = true; reject(new Error("timeout")); } }, ms);
+      fetch(url, { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (txt) {
+        if (!done) { done = true; clearTimeout(t); resolve(txt); }
+      }).catch(function (e) { if (!done) { done = true; clearTimeout(t); reject(e); } });
+    });
   }
 
-  var adv = "";
-  for (var j = 0; j < A.list.length; j++) {
-    var a = A.list[j];
-    adv += "<div class='adv'><div class='ic " + a.c + "'>" + a.ic + "</div><div><div class='h1'>" + a.t + "</div><div class='p'>" + a.b + "</div></div></div>";
-  }
-
-  return "<div class='pane'><div class='sky'>" +
-    "<div class='cityrow'><div class='city'>" + CITY.name + "<small>" + CITY.dist + " · " + hh + ":" + mm + " 更新</small></div><div>📍</div></div>" +
-    "<div class='now'><div class='deg'>" + Math.round(cur.temperature_2m) + "<sup>°</sup></div>" +
-    "<div class='cond'><b>" + textOf(cur.weather_code) + "</b><br>体感 " + Math.round(cur.apparent_temperature) + "° · 明天 " + Math.round(A.tmin1) + "°–" + Math.round(A.tmax1) + "°</div></div>" +
-    "<div class='chips'><div class='chip'>💧 湿度 " + cur.relative_humidity_2m + "%</div><div class='chip'>🌬 " + dirOf(cur.wind_direction_10m) + "风 " + levelOf(cur.wind_speed_10m) + " 级</div>" +
-    "<div class='chip'>☀️ 紫外线 " + (A.uv1 >= 6 ? "强" : A.uv1 >= 3 ? "中等" : "弱") + "</div></div></div>" +
-    "<div class='hourly'>" + hours + "</div>" +
-    "<div class='sec'><p class='sec-t'>出行建议</p>" + adv + "</div></div>";
-}
-
-function dayLabel(d) {
-  var t = new Date(); t.setHours(0,0,0,0);
-  var x = new Date(d); x.setHours(0,0,0,0);
-  var diff = Math.round((x - t) / 864e5);
-  if (diff === 0) return "今天";
-  if (diff === 1) return "明天";
-  if (diff === 2) return "后天";
-  if (diff < 0) return "已过期";
-  return (x.getMonth() + 1) + "月" + x.getDate() + "日";
-}
-
-function renderMemo() {
-  var list = S.memos.slice().sort(function (a, b) {
-    if (a.done !== b.done) return a.done ? 1 : -1;
-    var ta = a.time ? new Date(a.time).getTime() : 9e15;
-    var tb = b.time ? new Date(b.time).getTime() : 9e15;
-    return ta - tb;
-  });
-  var html = "<div class='pane'><div class='top'><div><h1>备忘</h1><div class='sub'>共 " + S.memos.length + " 条 · 未完成 " + S.memos.filter(function (m) { return !m.done; }).length + " 条</div></div>" +
-    "<button class='add' onclick='openSheet()'>+</button></div>";
-  if (!list.length) {
-    html += "<div class='empty'>还没有备忘<br>点右上角 + 加一条</div>";
-  } else {
-    var lastDay = null;
-    for (var i = 0; i < list.length; i++) {
-      var m = list[i];
-      var d = m.time ? new Date(m.time) : null;
-      var dl = d ? dayLabel(d) : "未设时间";
-      if (dl !== lastDay) { html += "<div class='day'>" + dl + "</div>"; lastDay = dl; }
-      var tags = "";
-      if (d) {
-        var over = !m.done && d.getTime() <= Date.now();
-        tags += "<span class='tag " + (over ? "hot" : "clk") + "'>" + pad(d.getHours()) + ":" + pad(d.getMinutes()) + (over ? " 已到点" : "") + "</span>";
+  // 背景检查：取到新版本就存下来并重载一次
+  function backgroundCheck(currentHash) {
+    timeoutFetch(APP_URL + "?t=" + Date.now(), 6000).then(function (txt) {
+      if (!txt || txt.length < 500) return;
+      var h = hash(txt);
+      if (h === currentHash) return;
+      writeCache(h, txt);
+      try { localStorage.setItem(CHECK_KEY, String(Date.now())); } catch (e) {}
+      var guard = sessionStorage.getItem("rzgj_reloaded");
+      if (guard !== h) {
+        sessionStorage.setItem("rzgj_reloaded", h);
+        setTimeout(function () { location.reload(); }, 600);
       }
-      if (m.loc) tags += "<span class='tag loc'>到「" + m.loc + "」</span>";
-      if (m.note) tags += "<span>" + m.note + "</span>";
-      html += "<div class='memo" + (m.done ? " done" : "") + "'><div class='cb' onclick='toggleMemo(" + m.id + ")'>" + (m.done ? "✓" : "") + "</div>" +
-        "<div class='b'><div class='t1'>" + esc(m.title) + "</div><div class='t2'>" + tags + "</div></div>" +
-        "<button class='del' onclick='delMemo(" + m.id + ")'>✕</button></div>";
+    }).catch(function () {});
+  }
+
+  var cache = readCache();
+  var lastCheck = 0;
+  try { lastCheck = parseInt(localStorage.getItem(CHECK_KEY) || "0", 10) || 0; } catch (e) {}
+  var fresh = (Date.now() - lastCheck) < CHECK_GAP;
+
+  if (cache && cache.html && fresh) {
+    render(cache.html);
+    backgroundCheck(cache.h);
+    return;
+  }
+
+  var source = APP_URL + "?t=" + Date.now();
+  if (!cache || !cache.html) source = "app.html";
+
+  timeoutFetch(source, 2500).then(function (txt) {
+    if (txt && txt.length > 500 && txt.indexOf("<html") >= 0) {
+      var h = hash(txt);
+      writeCache(h, txt);
+      try { localStorage.setItem(CHECK_KEY, String(Date.now())); } catch (e) {}
+      render(txt);
+    } else if (cache && cache.html) {
+      render(cache.html);
+    } else {
+      throw new Error("empty");
     }
-  }
-  return html + "</div>";
-}
-
-function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
-
-function renderFan() {
-  var f = S.fan;
-  var ticks = "";
-  for (var i = 1; i <= 9; i++) ticks += "<i class='" + (i <= f.speed ? "on" : "") + "' onclick='setSpeed(" + i + ")'>" + i + "</i>";
-  var timers = "";
-  var opts = [0, 1, 2, 4, 8];
-  for (var j = 0; j < opts.length; j++) {
-    var v = opts[j];
-    timers += "<i class='" + (f.timer === v ? "on" : "") + "' onclick='setTimer(" + v + ")'>" + (v === 0 ? "关" : v + "h") + "</i>";
-  }
-  return "<div class='pane'><div class='top'><div><h1>电风扇</h1><div class='sub'>未连接设备 · 演示模式</div></div></div>" +
-    "<div class='fanwrap'><button class='pwr" + (f.on ? "" : " off") + "' onclick='togglePower()'>⏻</button>" +
-    "<div class='st'>" + (f.on ? "运行中 · " + f.speed + " 档 · " + (f.nat ? "自然风" : f.sleep ? "睡眠风" : "普通风") : "已关闭") + "</div>" +
-    "<div class='kpi'><div>室温<b>--</b></div><div>档位<b>" + (f.on ? f.speed : 0) + "</b></div><div>定时<b>" + (f.timer ? f.timer + "h" : "关") + "</b></div></div></div>" +
-    "<div class='box'><div class='lb'>风速档位</div><div class='ticks'>" + ticks + "</div></div>" +
-    "<div class='box'><div class='lb'>定时关闭</div><div class='ticks'>" + timers + "</div></div>" +
-    "<div class='box'><div class='lb'>功能</div>" +
-    "<div class='row'><div>🔄 左右摇头</div><div class='sw" + (f.osc ? " on" : "") + "' onclick='tog(\"osc\")'></div></div>" +
-    "<div class='row'><div>🍃 自然风</div><div class='sw" + (f.nat ? " on" : "") + "' onclick='tog(\"nat\")'></div></div>" +
-    "<div class='row'><div>🌙 睡眠模式</div><div class='sw" + (f.sleep ? " on" : "") + "' onclick='tog(\"sleep\")'></div></div>" +
-    "<div class='row'><div>💡 小夜灯</div><div class='sw" + (f.light ? " on" : "") + "' onclick='tog(\"light\")'></div></div></div>" +
-    "<div class='note'>风扇还没做好，这里先保留操作手感。<br>等 ESP32 固件出来，这一页会直接连上真机。</div></div>";
-}
-
-function render() {
-  var v = document.getElementById("view");
-  var y = v.scrollTop;
-  if (S.tab === "weather") v.innerHTML = renderWeather();
-  else if (S.tab === "memo") v.innerHTML = renderMemo();
-  else v.innerHTML = renderFan();
-  if (S.tab === "weather") v.scrollTop = y; else v.scrollTop = 0;
-}
-
-function reload() { render(); fetchWeather(function () { if (S.tab === "weather") render(); }); }
-
-document.querySelectorAll(".tab").forEach(function (b) {
-  b.addEventListener("click", function () {
-    document.querySelectorAll(".tab").forEach(function (x) { x.classList.remove("on"); });
-    b.classList.add("on");
-    S.tab = b.dataset.t;
-    document.getElementById("view").scrollTop = 0;
-    render();
+  }).catch(function () {
+    if (cache && cache.html) { render(cache.html); return; }
+    fetch("app.html").then(function (r) { return r.text(); }).then(function (t) {
+      var h = hash(t);
+      writeCache(h, t);
+      render(t);
+    }).catch(function () {
+      document.getElementById("boot").innerHTML =
+        '<div class="t">加载失败</div><div class="s">请检查网络后重新打开</div>';
+    });
   });
-});
-
-/* memo actions */
-function toggleMemo(id) { for (var i=0;i<S.memos.length;i++) if (S.memos[i].id===id) S.memos[i].done = !S.memos[i].done; saveMemos(); render(); }
-function delMemo(id) { S.memos = S.memos.filter(function (m) { return m.id !== id; }); saveMemos(); cancelNative(id); render(); }
-function openSheet() {
-  document.getElementById("f-title").value = "";
-  document.getElementById("f-loc").value = "";
-  var d = new Date(Date.now() + 36e5); d.setMinutes(0,0,0);
-  document.getElementById("f-time").value = d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":00";
-  document.getElementById("mask").classList.add("on");
-  document.getElementById("sheet").classList.add("on");
-}
-function closeSheet() { document.getElementById("mask").classList.remove("on"); document.getElementById("sheet").classList.remove("on"); }
-document.getElementById("mask").addEventListener("click", closeSheet);
-document.getElementById("f-cancel").addEventListener("click", closeSheet);
-document.getElementById("f-save").addEventListener("click", function () {
-  var t = document.getElementById("f-title").value.trim();
-  if (!t) { alert("先写点什么"); return; }
-  var tm = document.getElementById("f-time").value;
-  var loc = document.getElementById("f-loc").value.trim();
-  S.memos.push({ id: Date.now(), title: t, time: tm || null, loc: loc || null, note: "", done: false });
-  saveMemos(); closeSheet(); render();
-  scheduleNative(S.memos[S.memos.length - 1]);
-  if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
-});
-
-/* fan actions */
-function togglePower() { S.fan.on = !S.fan.on; saveFan(); render(); }
-function setSpeed(i) { S.fan.speed = i; S.fan.on = true; saveFan(); render(); }
-function setTimer(v) { S.fan.timer = v; saveFan(); render(); }
-function tog(k) { if (k === "nat" && !S.fan.nat) S.fan.sleep = false; if (k === "sleep" && !S.fan.sleep) S.fan.nat = false; S.fan[k] = !S.fan[k]; saveFan(); render(); }
-
-/* reminder loop */
-var fired = {};
-function tick() {
-  var now = Date.now();
-  for (var i = 0; i < S.memos.length; i++) {
-    var m = S.memos[i];
-    if (m.done || !m.time || fired[m.id]) continue;
-    if (new Date(m.time).getTime() <= now) {
-      fired[m.id] = 1;
-      showBanner("⏰ " + m.title + (m.loc ? " · 到" + m.loc + "时提醒" : ""));
-      if ("Notification" in window && Notification.permission === "granted") {
-        try { new Notification("出行助手", { body: m.title }); } catch (e) {}
-      }
-      render();
-    }
-  }
-  if (S.fan.on && S.fan.timer) { /* placeholder for real device timer */ }
-}
-function showBanner(t) {
-  var b = document.getElementById("banner");
-  b.textContent = t; b.classList.add("on");
-  setTimeout(function () { b.classList.remove("on"); }, 6000);
-}
-
-function isNative(){ try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch (e) { return false; } }
-function nativeLN(){ try { return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null; } catch (e) { return null; } }
-function scheduleNative(m){
-  var LN = nativeLN(); if (!LN || !m.time) return;
-  var when = new Date(m.time); if (when.getTime() <= Date.now()) return;
-  LN.requestPermissions().then(function(){
-    return LN.schedule({ notifications: [{ id: (m.id % 2147483600), title: "出行助手", body: m.title, schedule: { at: when, allowWhileIdle: true } }] });
-  }).catch(function(){});
-}
-function cancelNative(id){
-  var LN = nativeLN(); if (!LN) return;
-  LN.cancel({ notifications: [{ id: (id % 2147483600) }] }).catch(function(){});
-}
-function initNative(){
-  var LN = nativeLN(); if (LN) { LN.requestPermissions().catch(function(){}); }
-}
-
-
-load();
-render();
-initNative();
-fetchWeather(function () { if (S.tab === "weather") render(); });
-setInterval(tick, 10000);
-document.addEventListener("visibilitychange", function () { if (!document.hidden) { tick(); fetchWeather(function(){ if (S.tab==="weather") render(); }); } });
+})();
 </script>
 </body>
 </html>
