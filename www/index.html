@@ -7,21 +7,27 @@
 <title>蕊之管家</title>
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#2E9E6B}
-  #sky{position:fixed;inset:0;opacity:0;transition:opacity .34s ease;
-    background:linear-gradient(165deg,#4E8FE8,#7FB8F2 50%,#CFE6FF)}
-  #sky.on{opacity:1}
-  #boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:#2E9E6B;transition:opacity .34s ease}
-  #boot.out{opacity:0}
-  #logo{width:132px;height:132px;border-radius:30px;border:2px solid rgba(255,255,255,.75);
-    background:rgba(255,255,255,.19);display:flex;align-items:center;justify-content:center;
-    font-size:66px;color:#fff;font-weight:500;box-shadow:0 16px 34px -14px rgba(0,0,0,.45)}
-  #name{margin-top:20px;color:#fff;font-size:23px;font-weight:600;letter-spacing:7px;text-indent:7px}
+  #boot{position:fixed;inset:0;background:#2E9E6B}
+  /* 方框：和系统启动图完全同位置（屏幕正中）、同比例（约占屏宽 33.6%） */
+  #logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:33.6vw;height:33.6vw;border-radius:7.5vw;background:rgba(255,255,255,.17);
+    display:flex;align-items:center;justify-content:center;line-height:1;
+    font-size:16.5vw;color:#fff;font-weight:500}
+  #txt{position:absolute;left:0;right:0;top:calc(50% + 20.5vw);text-align:center;
+    color:#fff;opacity:0;transition:opacity .3s ease}
+  #txt.on{opacity:1}
+  #name{font-size:23px;font-weight:600;letter-spacing:7px;text-indent:7px}
+  #sub{color:rgba(255,255,255,.85);font-size:12px;letter-spacing:2px;margin-top:8px}
+  #spin{width:24px;height:24px;margin:26px auto 0;border:2.5px solid rgba(255,255,255,.28);
+    border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div id="sky"></div>
-<div id="boot"><div id="logo">蕊</div><div id="name">蕊之管家</div></div>
+<div id="boot">
+  <div id="logo">蕊</div>
+  <div id="txt"><div id="name">蕊之管家</div><div id="sub">正在加载</div><div id="spin"></div></div>
+</div>
 <script>
 (function () {
   var REPO = "tgg-11/travel-assistant";
@@ -34,8 +40,12 @@
   ];
   var CACHE = "rzgj_app_v1";
   var T0 = Date.now();
-  var MIN_SHOW = 620;   // 启动页最少停留
-  var FADE = 340;       // 过渡时长
+  var MIN_SHOW = 900;
+
+  setTimeout(function(){
+    var t = document.getElementById("txt");
+    if (t) t.classList.add("on");
+  }, 160);
 
   function hash(s){ var h=5381; for(var i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))>>>0; return h.toString(36); }
   function valid(t){ return !!t && t.length > 2000 && t.indexOf("<html") >= 0; }
@@ -62,7 +72,6 @@
       });
     });
   }
-
   function bgUpdate(cur){
     fromNetwork(6000).then(function(t){
       if(!t) return;
@@ -72,14 +81,9 @@
       setTimeout(function(){ location.reload(); }, 400);
     });
   }
-
   function play(html){
     var wait = Math.max(0, MIN_SHOW - (Date.now() - T0));
-    setTimeout(function(){
-      document.getElementById("sky").classList.add("on");
-      document.getElementById("boot").classList.add("out");
-      setTimeout(function(){ render(html); }, FADE);
-    }, wait);
+    setTimeout(function(){ render(html); }, wait);
   }
 
   var cache = readCache();
@@ -93,7 +97,7 @@
   }).catch(function(){
     fromNetwork(4000).then(function(t){
       if(t){ saveCache(hash(t), t); play(t); bgUpdate(hash(t)); }
-      else { document.getElementById("name").textContent = "加载失败"; }
+      else { document.getElementById("sub").textContent = "加载失败，请检查网络"; }
     });
   });
 })();
