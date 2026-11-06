@@ -62,19 +62,19 @@ if _font_path:
     _S = 1080
     _img = Image.new("RGBA", (_S, _S), (0, 0, 0, 0))
     _d = _ID.Draw(_img)
-    _box = 620
+    _box = 540
     _bx = (_S - _box) // 2
-    _by = 90
-    _d.rounded_rectangle([_bx, _by, _bx + _box, _by + _box], radius=140,
-                         fill=(255, 255, 255, 48), outline=(255, 255, 255, 205), width=8)
-    _f = _IF.truetype(_font_path, 300)
+    _by = 170
+    _d.rounded_rectangle([_bx, _by, _bx + _box, _by + _box], radius=126,
+                         fill=(255, 255, 255, 46))
+    _f = _IF.truetype(_font_path, 262)
     _bb = _d.textbbox((0, 0), "蕊", font=_f)
     _d.text((_S / 2 - (_bb[2] - _bb[0]) / 2 - _bb[0], _by + _box / 2 - (_bb[3] - _bb[1]) / 2 - _bb[1]),
             "蕊", font=_f, fill=(255, 255, 255, 255))
-    _ft = _IF.truetype(_font_path, 132)
+    _ft = _IF.truetype(_font_path, 100)
     _t = "蕊 之 管 家"
     _tb = _d.textbbox((0, 0), _t, font=_ft)
-    _d.text((_S / 2 - (_tb[2] - _tb[0]) / 2 - _tb[0], _by + _box + 60),
+    _d.text((_S / 2 - (_tb[2] - _tb[0]) / 2 - _tb[0], _by + _box + 54),
             _t, font=_ft, fill=(255, 255, 255, 255))
     _img.save(os.path.join(_dr, "splash_icon.png"))
     print("splash icon generated")
