@@ -17,6 +17,7 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#F2F4F7;
 @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
 /* weather */
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;border-radius:0 0 30px 30px}
 .sky{background:linear-gradient(165deg,#4E8FE8,#7FB8F2 50%,#CFE6FF);padding:calc(14px + env(safe-area-inset-top)) 20px 24px;color:#fff;border-radius:0 0 30px 30px;position:relative;overflow:hidden}
 .sky::after{content:"";position:absolute;inset:0;background:radial-gradient(300px 150px at 84% 6%,rgba(255,255,255,.45),transparent 70%);pointer-events:none}
 .cityrow{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
@@ -169,8 +170,8 @@ function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
 function fetchWeather(cb) {
   var u = "https://api.open-meteo.com/v1/forecast?latitude=" + CITY.lat + "&longitude=" + CITY.lon +
-    "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,is_day" +
-    "&hourly=temperature_2m,precipitation_probability,weather_code" +
+    "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,is_day,precipitation" +
+    "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code" +
     "&daily=temperature_2m_max,temperature_2m_min,uv_index_max" +
     "&timezone=Asia%2FShanghai&forecast_days=2";
   fetch(u).then(function (r) { return r.json(); }).then(function (j) {
@@ -205,7 +206,7 @@ function adviceOf(wx) {
 
 function renderWeather() {
   if (!S.wx) {
-    return "<div class='pane'><div class='sky'><div class='cityrow'><div class='city'>" + CITY.name + "<small>" + CITY.dist + "</small></div></div>" +
+    return "<div class='pane'><div class='sky'><canvas id='fx'></canvas><div class='cityrow'><div class='city'>" + CITY.name + "<small>" + CITY.dist + "</small></div></div>" +
       "<div class='now'><div class='deg'>--<sup>°</sup></div><div class='cond'>" + (S.wxErr ? "天气获取失败<br>检查网络后重试" : "正在获取天气…") + "</div></div></div>" +
       "<div class='sec'><button class='btn' onclick='reload()'>重新获取</button></div></div>";
   }
@@ -313,9 +314,9 @@ function renderFan() {
 function render() {
   var v = document.getElementById("view");
   var y = v.scrollTop;
-  if (S.tab === "weather") v.innerHTML = renderWeather();
-  else if (S.tab === "memo") v.innerHTML = renderMemo();
-  else v.innerHTML = renderFan();
+  if (S.tab === "weather") { v.innerHTML = renderWeather(); FX.start(); }
+  else if (S.tab === "memo") { v.innerHTML = renderMemo(); FX.stop(); }
+  else { v.innerHTML = renderFan(); FX.stop(); }
   if (S.tab === "weather") v.scrollTop = y; else v.scrollTop = 0;
 }
 
@@ -403,6 +404,139 @@ function initNative(){
   var LN = nativeLN(); if (LN) { LN.requestPermissions().catch(function(){}); }
 }
 
+
+
+/* ===== 天气动效 ===== */
+var FX = (function () {
+  var cv, ctx, W, H, raf = null, mode = "sun", dens = 0.6;
+  var drops = [], flakes = [], clouds = [], dots = [], nextBolt = 0, bolt = 0, last = 0;
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  function kindOf(code) {
+    if (code === 45 || code === 48) return "fog";
+    if ([71, 73, 75, 77, 85, 86].indexOf(code) >= 0) return "snow";
+    if ([95, 96, 99].indexOf(code) >= 0) return "storm";
+    if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].indexOf(code) >= 0) return "rain";
+    if (code === 2 || code === 3) return "cloud";
+    return "sun";
+  }
+
+  function reset() {
+    drops = []; flakes = []; clouds = []; dots = [];
+    var n = Math.round(60 * dens);
+    for (var i = 0; i < n; i++) drops.push({ x: rnd(-40, W + 40), y: rnd(-H, H), l: rnd(10, 26) * (0.6 + dens * 0.5), s: rnd(520, 900) * (0.7 + dens * 0.4), o: rnd(0.10, 0.32) });
+    var nf = Math.round(50 * Math.max(0.6, dens));
+    for (var j = 0; j < nf; j++) flakes.push({ x: rnd(0, W), y: rnd(-H, H), r: rnd(1.2, 3.2), s: rnd(28, 70), p: rnd(0, 6.28), o: rnd(0.35, 0.85) });
+    for (var k = 0; k < 5; k++) clouds.push({ x: rnd(-W * 0.4, W), y: rnd(10, H * 0.62), s: rnd(0.55, 1.25), sp: rnd(4, 12), o: rnd(0.10, 0.22) });
+    for (var m = 0; m < 22; m++) dots.push({ x: rnd(0, W), y: rnd(0, H), r: rnd(0.8, 2.2), sp: rnd(6, 18), o: rnd(0.15, 0.5) });
+    nextBolt = performance.now() + rnd(1800, 4200);
+  }
+
+  function cloud(c, a) {
+    var b = c.s * 46;
+    ctx.fillStyle = "rgba(255,255,255," + a + ")";
+    var pts = [[0, .50, .46, .50], [.20, .24, .46, .62], [.40, .38, .44, .52], [.10, .60, .72, .40], [.52, .56, .42, .44], [.30, .48, .50, .50]];
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      ctx.beginPath();
+      ctx.ellipse(c.x + p[0] * b, c.y + p[1] * b * 0.9, p[2] * b / 2, p[3] * b * 0.45, 0, 0, 6.283);
+      ctx.fill();
+    }
+  }
+
+  function draw(t) {
+    if (!ctx) return;
+    var dt = Math.min(50, t - last) / 1000; last = t;
+    ctx.clearRect(0, 0, W, H);
+
+    if (mode === "sun") {
+      var g = ctx.createRadialGradient(W * 0.82, H * 0.16, 0, W * 0.82, H * 0.16, W * 0.7);
+      g.addColorStop(0, "rgba(255,255,225,.42)");
+      g.addColorStop(1, "rgba(255,255,225,0)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      for (var i = 0; i < dots.length; i++) {
+        var d = dots[i]; d.y -= d.sp * dt;
+        if (d.y < -6) { d.y = H + 6; d.x = Math.random() * W; }
+        ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 6.283);
+        ctx.fillStyle = "rgba(255,255,255," + d.o + ")"; ctx.fill();
+      }
+    }
+
+    if (mode === "cloud" || mode === "fog") {
+      for (var c = 0; c < clouds.length; c++) {
+        var cl = clouds[c]; cl.x += cl.sp * dt * (mode === "fog" ? 1.6 : 1);
+        if (cl.x - cl.s * 60 > W) { cl.x = -cl.s * 60; cl.y = rnd(10, H * 0.62); }
+        cloud(cl, mode === "fog" ? cl.o * 1.25 : cl.o);
+      }
+      if (mode === "fog") {
+        ctx.fillStyle = "rgba(255,255,255,.10)"; ctx.fillRect(0, 0, W, H);
+      }
+    }
+
+    if (mode === "rain" || mode === "storm") {
+      ctx.lineCap = "round";
+      for (var r = 0; r < drops.length; r++) {
+        var dr = drops[r];
+        dr.y += dr.s * dt; dr.x -= dr.s * dt * 0.18;
+        if (dr.y > H + 30 || dr.x < -40) { dr.y = rnd(-80, -10); dr.x = rnd(0, W + 60); }
+        ctx.strokeStyle = "rgba(255,255,255," + dr.o + ")";
+        ctx.lineWidth = dens > 1.4 ? 1.5 : 1.1;
+        ctx.beginPath(); ctx.moveTo(dr.x, dr.y); ctx.lineTo(dr.x - dr.l * 0.22, dr.y + dr.l); ctx.stroke();
+      }
+      for (var q = 0; q < 3; q++) {
+        var ph = (t / 1400 + q * 0.33) % 1, rr = 8 + ph * 34;
+        ctx.strokeStyle = "rgba(255,255,255," + (0.22 * (1 - ph)) + ")";
+        ctx.lineWidth = 1.2; ctx.beginPath();
+        ctx.ellipse(W * (0.22 + q * 0.28), H - 18, rr, rr * 0.28, 0, 0, 6.283); ctx.stroke();
+      }
+      if (mode === "storm" && t > nextBolt) { bolt = 1; nextBolt = t + rnd(3000, 6500); }
+      if (bolt > 0) {
+        bolt -= dt * 4.2;
+        var b0 = Math.max(0, bolt);
+        // 双闪：主闪 + 短促回闪，整体很轻
+        var a = b0 * 0.10 + Math.max(0, b0 - 0.55) * 0.05;
+        ctx.fillStyle = "rgba(226,240,255," + a + ")"; ctx.fillRect(0, 0, W, H);
+      }
+    }
+
+    if (mode === "snow") {
+      for (var s = 0; s < flakes.length; s++) {
+        var fl = flakes[s]; fl.p += dt * 1.6;
+        fl.y += fl.s * dt; fl.x += Math.sin(fl.p) * 14 * dt;
+        if (fl.y > H + 6) { fl.y = -6; fl.x = Math.random() * W; }
+        ctx.beginPath(); ctx.arc(fl.x, fl.y, fl.r, 0, 6.283);
+        ctx.fillStyle = "rgba(255,255,255," + fl.o + ")"; ctx.fill();
+      }
+    }
+
+    raf = requestAnimationFrame(draw);
+  }
+
+  function start() {
+    stop();
+    cv = document.getElementById("fx");
+    if (!cv) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth || 360; H = cv.clientHeight || 260;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    var cur = (S.wx && S.wx.current) ? S.wx.current : {};
+    mode = kindOf(cur.weather_code);
+    var mm = cur.precipitation || 0;
+    if (mm < 0.2) mm = 0.6;
+    dens = mm < 0.5 ? 0.55 : mm < 2 ? 0.85 : mm < 5 ? 1.3 : 1.9;
+
+    reset(); last = performance.now();
+    raf = requestAnimationFrame(draw);
+  }
+
+  function stop() { if (raf) cancelAnimationFrame(raf); raf = null; ctx = null; }
+
+  return { start: start, stop: stop };
+})();
 
 load();
 render();
