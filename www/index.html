@@ -22,12 +22,7 @@
 </style>
 </head>
 <body>
-<div id="boot">
-  <div id="logo">蕊</div>
-  <div id="name">蕊之管家</div>
-  <div id="sub">正在加载</div>
-  <div id="spin"></div>
-</div>
+<div id="boot"></div>
 <script>
 (function () {
   var REPO = "tgg-11/travel-assistant";
@@ -50,7 +45,7 @@
   function valid(t) { return !!t && t.length > 2000 && t.indexOf("<html") >= 0; }
   function readCache() { try { return JSON.parse(localStorage.getItem(CACHE) || "null"); } catch (e) { return null; } }
   function saveCache(h, t) { try { localStorage.setItem(CACHE, JSON.stringify({ h: h, html: t })); localStorage.setItem(LAST, String(Date.now())); } catch (e) {} }
-  var MIN_SPLASH = 900;
+  var MIN_SPLASH = 350;
   var T0 = Date.now();
   function render(t) {
     var wait = Math.max(0, MIN_SPLASH - (Date.now() - T0));
