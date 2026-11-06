@@ -47,3 +47,17 @@ _dr = os.path.join(ROOT, "drawable")
 os.makedirs(_dr, exist_ok=True)
 _sp.save(os.path.join(_dr, "splash.png"))
 print("splash generated")
+
+# Android 12+ 系统启动画面：背景改绿、图标用 app 图标
+import re
+_styles = os.path.join(ROOT, "values", "styles.xml")
+_s = open(_styles, encoding="utf-8").read()
+if "windowSplashScreenBackground" not in _s:
+    _key = '<style name="AppTheme.NoActionBarLaunch"'
+    _i = _s.index(_key)
+    _j = _s.index("</style>", _i)
+    _inject = ('\n        <item name="windowSplashScreenBackground">#2E9E6B</item>'
+               '\n        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>\n    ')
+    _s = _s[:_j] + _inject + _s[_j:]
+    open(_styles, "w", encoding="utf-8").write(_s)
+    print("styles patched")
