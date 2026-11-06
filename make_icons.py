@@ -40,3 +40,10 @@ open(os.path.join(vals, "ic_launcher_background.xml"), "w", encoding="utf-8").wr
 )
 
 print("icons generated")
+
+# 原生启动图：纯绿色，替换 Capacitor 默认的白底
+_sp = Image.new("RGB", (1080, 1920), (46, 158, 107))
+_dr = os.path.join(ROOT, "drawable")
+os.makedirs(_dr, exist_ok=True)
+_sp.save(os.path.join(_dr, "splash.png"))
+print("splash generated")
