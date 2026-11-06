@@ -6,23 +6,22 @@
 <meta name="theme-color" content="#2E9E6B">
 <title>蕊之管家</title>
 <style>
-  html,body{margin:0;height:100%;overflow:hidden;background:#2E9E6B;
-    font-family:-apple-system,"HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  html,body{margin:0;height:100%;overflow:hidden;background:#2E9E6B}
+  #sky{position:fixed;inset:0;opacity:0;transition:opacity .34s ease;
+    background:linear-gradient(165deg,#4E8FE8,#7FB8F2 50%,#CFE6FF)}
+  #sky.on{opacity:1}
   #boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    background:linear-gradient(165deg,#2E9E6B 0%,#57C98B 55%,#9BE3B9 100%)}
-  #logo{width:110px;height:110px;border-radius:26px;border:2px solid rgba(255,255,255,.75);
-    box-shadow:0 20px 44px -14px rgba(0,0,0,.5);margin-bottom:26px;display:flex;align-items:center;
-    justify-content:center;font-size:52px;color:#fff;font-weight:500;
-    background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,.08))}
-  #name{color:#fff;font-size:25px;font-weight:600;letter-spacing:7px;text-indent:7px;margin-bottom:10px}
-  #sub{color:rgba(255,255,255,.82);font-size:12px;letter-spacing:2px}
-  #spin{width:26px;height:26px;margin-top:34px;border:2.5px solid rgba(255,255,255,.3);
-    border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
-  @keyframes sp{to{transform:rotate(360deg)}}
+    background:#2E9E6B;transition:opacity .34s ease}
+  #boot.out{opacity:0}
+  #logo{width:132px;height:132px;border-radius:30px;border:2px solid rgba(255,255,255,.75);
+    background:rgba(255,255,255,.19);display:flex;align-items:center;justify-content:center;
+    font-size:66px;color:#fff;font-weight:500;box-shadow:0 16px 34px -14px rgba(0,0,0,.45)}
+  #name{margin-top:20px;color:#fff;font-size:23px;font-weight:600;letter-spacing:7px;text-indent:7px}
 </style>
 </head>
 <body>
-<div id="boot"></div>
+<div id="sky"></div>
+<div id="boot"><div id="logo">蕊</div><div id="name">蕊之管家</div></div>
 <script>
 (function () {
   var REPO = "tgg-11/travel-assistant";
@@ -34,78 +33,67 @@
     "https://ghproxy.net/https://raw.githubusercontent.com/" + REPO + "/main/" + PATH
   ];
   var CACHE = "rzgj_app_v1";
-  var LAST = "rzgj_last_ok";
-  var GAP = 6 * 3600 * 1000;
-
-  function hash(s) {
-    var h = 5381;
-    for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
-    return h.toString(36);
-  }
-  function valid(t) { return !!t && t.length > 2000 && t.indexOf("<html") >= 0; }
-  function readCache() { try { return JSON.parse(localStorage.getItem(CACHE) || "null"); } catch (e) { return null; } }
-  function saveCache(h, t) { try { localStorage.setItem(CACHE, JSON.stringify({ h: h, html: t })); localStorage.setItem(LAST, String(Date.now())); } catch (e) {} }
-  var MIN_SPLASH = 350;
   var T0 = Date.now();
-  function render(t) {
-    var wait = Math.max(0, MIN_SPLASH - (Date.now() - T0));
-    setTimeout(function () { document.open(); document.write(t); document.close(); }, wait);
-  }
+  var MIN_SHOW = 620;   // 启动页最少停留
+  var FADE = 340;       // 过渡时长
 
-  function tryOne(url, ms) {
-    return new Promise(function (resolve, reject) {
-      var done = false;
-      var timer = setTimeout(function () { if (!done) { done = true; reject(); } }, ms);
-      fetch(url + (url.indexOf("?") > -1 ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" })
-        .then(function (r) { return r.text(); })
-        .then(function (t) {
-          if (done) return;
-          done = true; clearTimeout(timer);
-          if (valid(t)) resolve(t); else reject();
-        })
-        .catch(function () { if (!done) { done = true; clearTimeout(timer); reject(); } });
+  function hash(s){ var h=5381; for(var i=0;i<s.length;i++) h=((h<<5)+h+s.charCodeAt(i))>>>0; return h.toString(36); }
+  function valid(t){ return !!t && t.length > 2000 && t.indexOf("<html") >= 0; }
+  function readCache(){ try { return JSON.parse(localStorage.getItem(CACHE) || "null"); } catch(e){ return null; } }
+  function saveCache(h,t){ try { localStorage.setItem(CACHE, JSON.stringify({h:h,html:t})); } catch(e){} }
+  function render(t){ document.open(); document.write(t); document.close(); }
+
+  function tryOne(url, ms){
+    return new Promise(function(resolve, reject){
+      var done=false;
+      var timer=setTimeout(function(){ if(!done){done=true;reject();} }, ms);
+      fetch(url + (url.indexOf("?")>-1?"&":"?") + "t=" + Date.now(), {cache:"no-store"})
+        .then(function(r){ return r.text(); })
+        .then(function(t){ if(done) return; done=true; clearTimeout(timer); if(valid(t)) resolve(t); else reject(); })
+        .catch(function(){ if(!done){done=true;clearTimeout(timer);reject();} });
     });
   }
-  function fromNetwork(ms) {
-    return new Promise(function (resolve) {
-      var pending = SOURCES.length, finished = false;
-      SOURCES.forEach(function (u) {
-        tryOne(u, ms).then(function (t) { if (!finished) { finished = true; resolve(t); } })
-                     .catch(function () { if (--pending === 0 && !finished) { finished = true; resolve(null); } });
+  function fromNetwork(ms){
+    return new Promise(function(resolve){
+      var pending=SOURCES.length, finished=false;
+      SOURCES.forEach(function(u){
+        tryOne(u,ms).then(function(t){ if(!finished){finished=true;resolve(t);} })
+                   .catch(function(){ if(--pending===0 && !finished){finished=true;resolve(null);} });
       });
     });
   }
 
-  var cache = readCache();
-  var last = 0;
-  try { last = parseInt(localStorage.getItem(LAST) || "0", 10) || 0; } catch (e) {}
-  var fresh = (Date.now() - last) < GAP;
-
-  if (cache && fresh) {
-    render(cache.html);
-    fromNetwork(5000).then(function (t) {
-      if (!t) return;
-      var h = hash(t);
-      if (h === cache.h) return;
-      saveCache(h, t);
-      try {
-        if (sessionStorage.getItem("rzgj_reload") === h) return;
-        sessionStorage.setItem("rzgj_reload", h);
-      } catch (e) {}
-      setTimeout(function () { location.reload(); }, 500);
+  function bgUpdate(cur){
+    fromNetwork(6000).then(function(t){
+      if(!t) return;
+      var h=hash(t); if(h===cur) return;
+      saveCache(h,t);
+      try{ if(sessionStorage.getItem("rzgj_reload")===h) return; sessionStorage.setItem("rzgj_reload",h); }catch(e){}
+      setTimeout(function(){ location.reload(); }, 400);
     });
-    return;
   }
 
-  fromNetwork(3000).then(function (t) {
-    if (t) { saveCache(hash(t), t); render(t); return; }
-    if (cache) { render(cache.html); return; }
-    fetch("app.html").then(function (r) { return r.text(); }).then(function (local) {
-      if (valid(local)) { saveCache(hash(local), local); render(local); return; }
-      throw new Error("bad");
-    }).catch(function () {
-      document.getElementById("sub").textContent = "加载失败，请检查网络后重开";
-      document.getElementById("spin").style.display = "none";
+  function play(html){
+    var wait = Math.max(0, MIN_SHOW - (Date.now() - T0));
+    setTimeout(function(){
+      document.getElementById("sky").classList.add("on");
+      document.getElementById("boot").classList.add("out");
+      setTimeout(function(){ render(html); }, FADE);
+    }, wait);
+  }
+
+  var cache = readCache();
+  if (cache && cache.html) { play(cache.html); bgUpdate(cache.h); return; }
+
+  fetch("app.html").then(function(r){ return r.text(); }).then(function(local){
+    if(!valid(local)) throw new Error("bad");
+    saveCache(hash(local), local);
+    play(local);
+    bgUpdate(hash(local));
+  }).catch(function(){
+    fromNetwork(4000).then(function(t){
+      if(t){ saveCache(hash(t), t); play(t); bgUpdate(hash(t)); }
+      else { document.getElementById("name").textContent = "加载失败"; }
     });
   });
 })();
